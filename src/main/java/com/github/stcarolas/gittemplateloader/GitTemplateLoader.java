@@ -17,6 +17,7 @@ import lombok.extern.log4j.Log4j2;
 public class GitTemplateLoader extends AbstractTemplateLoader {
     private final String url;
     private final UrlType urlType;
+    private final String id = UUID.randomUUID().toString();
 
     @Override
     public TemplateSource sourceAt(String filename) throws IOException {
@@ -36,7 +37,10 @@ public class GitTemplateLoader extends AbstractTemplateLoader {
     }
 
     public Optional<File> getDirectory() {
-        val directory = new File("/tmp/enki/" + UUID.randomUUID().toString());
+        val directory = new File("/tmp/enki/" + id);
+        if (directory.exists()) {
+            return Optional.of(directory);
+        }
         directory.mkdirs();
         return Try.of(
             () -> {
@@ -48,7 +52,7 @@ public class GitTemplateLoader extends AbstractTemplateLoader {
                 return directory;
             }
         )
-            .onFailure(error -> log.error("error: {}"))
+            .onFailure(error -> log.error("error: {}", error))
             .toOptional();
     }
 }
