@@ -12,23 +12,23 @@ import org.eclipse.jgit.util.FS;
 
 public class DefaultTransportConfigCallback implements TransportConfigCallback {
 
-    @Override
-    public void configure(Transport transport) {
-        SshTransport sshTransport = (SshTransport) transport;
-        sshTransport.setSshSessionFactory(
-            new JschConfigSessionFactory() {
+	@Override
+	public void configure(Transport transport) {
+		SshTransport sshTransport = (SshTransport) transport;
+		sshTransport.setSshSessionFactory(
+			new JschConfigSessionFactory() {
 
-                @Override
-                protected void configure(Host arg0, Session arg1) {}
+				@Override
+				protected void configure(Host arg0, Session arg1) {}
 
-                @Override
-                protected JSch createDefaultJSch(FS fs) throws JSchException {
-                    JSch defaultJSch = super.createDefaultJSch(fs);
-                    JSch.setConfig("StrictHostKeyChecking", "no");
-                    defaultJSch.addIdentity(System.getProperty("user.home") + "/.ssh/id_rsa");
-                    return defaultJSch;
-                }
-            }
-        );
-    }
+				@Override
+				protected JSch createDefaultJSch(FS fs) throws JSchException {
+					JSch defaultJSch = super.createDefaultJSch(fs);
+					JSch.setConfig("StrictHostKeyChecking", "no");
+					defaultJSch.addIdentity(System.getProperty("user.home") + "/.ssh/id_rsa");
+					return defaultJSch;
+				}
+			}
+		);
+	}
 }

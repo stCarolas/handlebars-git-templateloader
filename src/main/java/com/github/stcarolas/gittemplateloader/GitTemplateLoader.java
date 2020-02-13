@@ -15,44 +15,44 @@ import lombok.extern.log4j.Log4j2;
 @Builder
 @Log4j2
 public class GitTemplateLoader extends AbstractTemplateLoader {
-    private final String url;
-    private final UrlType urlType;
-    private final String id = UUID.randomUUID().toString();
+	private final String url;
+	private final UrlType urlType;
+	private final String id = UUID.randomUUID().toString();
 
-    @Override
-    public TemplateSource sourceAt(String filename) throws IOException {
-        val source = getDirectory()
-            .map(
-                dir -> {
-                    return GitTemplateSource.builder()
-                        .directory(dir)
-                        .filename(filename)
-                        .build();
-                }
-            );
-        if (source.isPresent()) {
-            return source.get();
-        }
-        return null;
-    }
+	@Override
+	public TemplateSource sourceAt(String filename) throws IOException {
+		val source = getDirectory()
+			.map(
+				dir -> {
+					return GitTemplateSource.builder()
+						.directory(dir)
+						.filename(filename)
+						.build();
+				}
+			);
+		if (source.isPresent()) {
+			return source.get();
+		}
+		return null;
+	}
 
-    public Optional<File> getDirectory() {
-        val directory = new File("/tmp/enki/" + id);
-        if (directory.exists()) {
-            return Optional.of(directory);
-        }
-        directory.mkdirs();
-        return Try.of(
-            () -> {
-                Git.cloneRepository()
-                    .setURI(url)
-                    .setDirectory(directory)
-                    .setTransportConfigCallback(new DefaultTransportConfigCallback())
-                    .call();
-                return directory;
-            }
-        )
-            .onFailure(error -> log.error("error: {}", error))
-            .toOptional();
-    }
+	public Optional<File> getDirectory() {
+		val directory = new File("/tmp/enki/" + id);
+		if (directory.exists()) {
+			return Optional.of(directory);
+		}
+		directory.mkdirs();
+		return Try.of(
+			() -> {
+				Git.cloneRepository()
+					.setURI(url)
+					.setDirectory(directory)
+					.setTransportConfigCallback(new DefaultTransportConfigCallback())
+					.call();
+				return directory;
+			}
+		)
+			.onFailure(error -> log.error("error: {}", error))
+			.toOptional();
+	}
 }

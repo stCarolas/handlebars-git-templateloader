@@ -14,21 +14,21 @@ import lombok.val;
 
 public class GitTemplateSourceTest {
 
-    @Test
-    public void testReadingContentFromFile() throws IOException{
-        val dirName = "/tmp/gittemplateloader-test/" + UUID.randomUUID();
-        val filename = "testfile";
+	@Test
+	public void testReadingContentFromFile() throws IOException{
+		val dirName = "/tmp/gittemplateloader-test/" + UUID.randomUUID();
+		val filename = "testfile";
 
-        val dir = new File(dirName);
-        dir.mkdirs();
-        val file = new File(dirName + "/" + filename);
-        file.createNewFile();
-        try (val out = new FileWriter(file)) {
-            out.write("test string");
-        }
+		val dir = new File(dirName);
+		dir.mkdirs();
+		val file = new File(dirName + "/" + filename);
+		file.createNewFile();
+		try (val out = new FileWriter(file)) {
+			out.write("test string");
+		}
 
-        val source = GitTemplateSource.builder().filename(filename).directory(dir).build();
-        assertEquals("test string\n", source.content(Charset.defaultCharset()));
-    }
+		val source = GitTemplateSource.builder().filename(filename).directory(dir).build();
+		assertEquals("test string\n", source.content(Charset.defaultCharset()));
+	}
 
 }

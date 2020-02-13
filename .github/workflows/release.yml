@@ -1,0 +1,92 @@
+name: Release
+
+on:
+  push:
+    branches:    
+      - master 
+
+jobs:
+
+  check_style:
+    name: Check Code Style
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout sources
+      uses: actions/checkout@v1
+
+    - name: Check with EditorConfig
+      uses: zbeekman/EditorConfig-Action@master
+
+  up_version:
+    name: Update Version
+    needs: [check_style]
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout sources
+      uses: actions/checkout@v1
+     
+    - name: Set up JDK
+      uses: actions/setup-java@v1
+      with:
+        java-version: 14.0.0-ea.34
+
+    - name: Set up Apache Maven
+      uses: stCarolas/setup-maven@v3
+      with:
+        maven-version: 3.5.4
+
+    - name: Calculate new version
+      id: next_version
+      uses: zwaldowski/semver-release-action@v1
+      with:
+        dry_run: true
+        bump: patch
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set new version in parent pom
+      run: |
+          mvn -q io.takari.polyglot:polyglot-translate-plugin:translate -Dinput=pom.yml -Doutput=pom.xml
+          mvn -q versions:set -DnewVersion=${{ steps.next_version.outputs.version }} -f pom.xml
+          mvn -q io.takari.polyglot:polyglot-translate-plugin:translate -Dinput=pom.xml -Doutput=pom.yml
+
+    - name: Push pom.yml with new version
+      uses: github-actions-x/commit@v2.1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        push-branch: 'master'
+        commit-message: 'bump version'
+        files: "./*"
+
+    - name: Tag new version
+      uses: zwaldowski/semver-release-action@v1
+      with:
+        bump: patch
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  publish:
+    name: Publish
+    needs: [up_version]
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout sources
+        uses: actions/checkout@v1
+        with:
+          ref: master
+     
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 14.0.0-ea.34
+
+      - name: Set up Apache Maven
+        uses: stCarolas/setup-maven@v3
+        with:
+          maven-version: 3.5.4
+  
+      - name: Publish
+        run: mvn -B -q deploy -Ddeploy.token=${{ secrets.BINTRAY_API_KEY }} -s .github/workflows/settings.xml
